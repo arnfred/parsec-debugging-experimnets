@@ -14,6 +14,11 @@ object DebugableGrammar extends StandardTokenParsers {
   def Term(implicit loc0: debugging.ParserLocation): Parser[Term] = (
     BoolTerm
     | SimpleChurchNumTerm
+    | IsZeroTerm
+  )
+
+  def IsZeroTerm(implicit loc0: debugging.ParserLocation): Parser[Term] = (
+    "iszero" ~> SimpleChurchNumTerm ^^ (t => IsZero(t))
   )
 //    | failure("illegal start of simple term"))
   
@@ -28,8 +33,8 @@ object DebugableGrammar extends StandardTokenParsers {
   )
   
   def main(args: Array[String]) {
-    val tokens = new lexical.Scanner(StreamReader(new java.io.InputStreamReader(System.in)))
-    //val tokens = new lexical.Scanner("succ succ succ zero")
+    //val tokens = new lexical.Scanner(StreamReader(new java.io.InputStreamReader(System.in)))
+    val tokens = new lexical.Scanner("iszero succ succ succ zero")
     val mainParser = phrase(Term)
     mainParser(tokens) match {
       case Success(trees, _) =>
@@ -39,6 +44,7 @@ object DebugableGrammar extends StandardTokenParsers {
           case tperror => println(tperror.toString)
         }
       case e =>
+
         println(e)
     }
   }
