@@ -8,14 +8,27 @@ import scala.util.parsing.combinator.debugging
 object DebugableGrammar extends StandardTokenParsers {
   lexical.delimiters ++= List("(", ")", "{", "}", ",", "*", "+")
   lexical.reserved   ++= List("true", "false", "succ",
-                              "pred", "iszero", "zero")
+                              "pred", "iszero", "zero", "Mip", "Mup", "Map", "Blip", "Blop", "Blap", "Blup")
   import debugging.ParserMacros._  
   
   def Term(implicit loc0: debugging.ParserLocation): Parser[Term] = (
-    BoolTerm
+    // BoolTerm
+
+    "Blip" ~ ("Blup" | "Blop") ~ "Blap" ~ "Blap" ~ "Blup" ^^^ True
+    | "Blip" ~ bopbop ~ "Blap" ~ "Blap" ~ "Blip" ^^^ True
+    //| rep("Blip") ~ "Blop" ~ rep("Blap") ~ "Blip" ^^^ False
+    | "Blip" ~ tjah ~ "Blap" ~ "Blap" ^^^ True
     | SimpleChurchNumTerm
     | IsZeroTerm
   )
+
+  def bopbop(implicit loc0: debugging.ParserLocation) : Parser[Term] = (
+      "Mip" ^^^ True
+    | "Mup" ^^^ True
+    | "Map" ^^^ True
+  )
+
+  def tjah(implicit loc0: debugging.ParserLocation) : Parser[Term] = "Blop" ~ "Blap" ^^^ False
 
   def IsZeroTerm(implicit loc0: debugging.ParserLocation): Parser[Term] = (
     "iszero" ~> SimpleChurchNumTerm ^^ (t => IsZero(t))
@@ -34,7 +47,7 @@ object DebugableGrammar extends StandardTokenParsers {
   
   def main(args: Array[String]) {
     //val tokens = new lexical.Scanner(StreamReader(new java.io.InputStreamReader(System.in)))
-    val tokens = new lexical.Scanner("iszero succ succ succ zero")
+    val tokens = new lexical.Scanner("Blip Blop Blap Blap Blap")
     val mainParser = phrase(Term)
     mainParser(tokens) match {
       case Success(trees, _) =>
